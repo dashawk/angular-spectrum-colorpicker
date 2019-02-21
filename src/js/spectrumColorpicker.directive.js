@@ -1,33 +1,32 @@
 (function(undefined) {
-  'use strict';
-  angularSpectrumColorpicker.directive('spectrumColorpicker', function() {
+  "use strict";
+  angularSpectrumColorpicker.directive("spectrumColorpicker", function() {
     return {
-      restrict: 'EA',
-      require: 'ngModel',
+      restrict: "EA",
+      require: "ngModel",
       scope: {
-        fallbackValue: '=',
-        disabled: '=?',
-        format: '=?',
-        options: '=?',
-        triggerId: '@?',
-		palette : '=?',
-        onChange: '&?',
-        onShow: '&?',
-        onHide: '&?',
-        onMove: '&?',
+        fallbackValue: "=",
+        disabled: "=?",
+        format: "=?",
+        options: "=?",
+        triggerId: "@?",
+        palette: "=?",
+        onChange: "&?",
+        onShow: "&?",
+        onHide: "&?",
+        onMove: "&?",
 
-        onBeforeShow: '&?',
+        onBeforeShow: "&?",
 
-	    onChangeOptions: '=?',
-	    onShowOptions: '=?',
-	    onHideOptions: '=?',
-	    onMoveOptions: '=?'
+        onChangeOptions: "=?",
+        onShowOptions: "=?",
+        onHideOptions: "=?",
+        onMoveOptions: "=?"
       },
       replace: true,
-      templateUrl: 'directive.html',
+      templateUrl: "directive.html",
       link: function($scope, $element, attrs, $ngModel) {
-
-        var $input = $element.find('input');
+        var $input = $element.find("input");
 
         function formatColor(tiny) {
           var formatted = tiny;
@@ -39,7 +38,7 @@
 
         function callOnChange(color) {
           if (angular.isFunction($scope.onChange)) {
-            $scope.onChange({color: color});
+            $scope.onChange({ color: color });
           }
         }
 
@@ -62,10 +61,9 @@
           });
         };
         var onToggle = function() {
-          $input.spectrum('toggle');
+          $input.spectrum("toggle");
           return false;
         };
-
 
         var baseOpts = {
           color: $ngModel.$viewValue
@@ -73,76 +71,98 @@
 
         var localOpts = {};
 
-            angular.forEach({
-                'change': 'onChange',
-                'move': 'onMove',
-                'hide': 'onHide',
-                'show': 'onShow',
-            },
-            function (eventHandlerName, eventName) {
-                var spectrumEventHandlerOptions = $scope[eventHandlerName + 'Options'];
-                localOpts[eventName] = function (color) {
-                    if (!spectrumEventHandlerOptions || spectrumEventHandlerOptions.update) {
-                        onChange(color);
-                    }
-                    // we don't do this for change, because we expose the current
-                    // value actively through the model
-                    if (eventHandlerName !== 'change' && angular.isFunction($scope[eventHandlerName])) {
-                        return $scope[eventHandlerName]({ color: formatColor(color) });
-                    } else {
-                        return null;
-                    }
-               };
-          });
+        angular.forEach(
+          {
+            change: "onChange",
+            move: "onMove",
+            hide: "onHide",
+            show: "onShow"
+          },
+          function(eventHandlerName, eventName) {
+            var spectrumEventHandlerOptions =
+              $scope[eventHandlerName + "Options"];
+            localOpts[eventName] = function (color) {
+              
+              // Prevents the $$phase error when destroyed
+              if ($scope.isDestroyed) return;
+              
+              if (
+                !spectrumEventHandlerOptions ||
+                spectrumEventHandlerOptions.update
+              ) {
+                onChange(color);
+              }
+              // we don't do this for change, because we expose the current
+              // value actively through the model
+              if (
+                eventHandlerName !== "change" &&
+                angular.isFunction($scope[eventHandlerName])
+              ) {
+                return $scope[eventHandlerName]({ color: formatColor(color) });
+              } else {
+                return null;
+              }
+            };
+          }
+        );
 
         if (angular.isFunction($scope.onBeforeShow)) {
           localOpts.beforeShow = function(color) {
-            return $scope.onBeforeShow({color: formatColor(color)});
+            return $scope.onBeforeShow({ color: formatColor(color) });
           };
         }
 
-		if ($scope.palette) {
+        if ($scope.palette) {
           localOpts.palette = $scope.palette;
         }
 
         var options = angular.extend({}, baseOpts, $scope.options, localOpts);
 
         if ($scope.triggerId) {
-          angular.element(document.body).on('click', '#' + $scope.triggerId, onToggle);
+          angular
+            .element(document.body)
+            .on("click", "#" + $scope.triggerId, onToggle);
         }
 
         $ngModel.$render = function() {
-          $input.spectrum('set', $ngModel.$viewValue || '');
+          $input.spectrum("set", $ngModel.$viewValue || "");
           callOnChange($ngModel.$viewValue);
         };
 
         if (options.color) {
-          $input.spectrum('set', options.color || '');
+          $input.spectrum("set", options.color || "");
           setViewValue(options.color);
         }
 
-		$input.spectrum(options);
+        $input.spectrum(options);
 
-        $scope.$on('$destroy', function() {
+        $scope.$on("$destroy", function() {
           if ($scope.triggerId) {
-            angular.element(document.body).off('click', '#' + $scope.triggerId, onToggle);
+            angular
+              .element(document.body)
+              .off("click", "#" + $scope.triggerId, onToggle);
           }
         });
-		$element.on('$destroy', function(){
-			$input.spectrum('destroy');
-		});
+        $element.on("$destroy", function () {
+          $scope.isDestroyed = true;
+          $input.spectrum("destroy");
+        });
 
-        if(angular.isDefined(options.disabled)) {
+        if (angular.isDefined(options.disabled)) {
           $scope.disabled = !!options.disabled;
         }
 
-        $scope.$watch('disabled', function (newDisabled) {
-          $input.spectrum(newDisabled ? 'disable' : 'enable');
+        $scope.$watch("disabled", function(newDisabled) {
+          $input.spectrum(newDisabled ? "disable" : "enable");
         });
 
-		$scope.$watch('palette', function (palette) {
-		  $input.spectrum('option', 'palette', palette);
-		}, true);
+        $scope.$watch(
+          "palette",
+          function(palette) {
+            $input.spectrum("option", "palette", palette);
+          },
+          true
+        );
       }
     };
   });
