@@ -82,10 +82,10 @@
             var spectrumEventHandlerOptions =
               $scope[eventHandlerName + "Options"];
             localOpts[eventName] = function (color) {
-              
+
               // Prevents the $$phase error when destroyed
               if ($scope.isDestroyed) return;
-              
+
               if (
                 !spectrumEventHandlerOptions ||
                 spectrumEventHandlerOptions.update
@@ -136,7 +136,8 @@
 
         $input.spectrum(options);
 
-        $scope.$on("$destroy", function() {
+        $scope.$on("$destroy", function () {
+          $scope.isDestroyed = true;
           if ($scope.triggerId) {
             angular
               .element(document.body)
@@ -144,7 +145,6 @@
           }
         });
         $element.on("$destroy", function () {
-          $scope.isDestroyed = true;
           $input.spectrum("destroy");
         });
 
